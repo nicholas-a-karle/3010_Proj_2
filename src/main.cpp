@@ -124,7 +124,62 @@ vector<vector<double>> getInput() {
 	return system;
 }
 
-int main(int argc, char *argv[])
-{
-	std::cout << "Hello world!" << std::endl;
+double L2N(vector<double> vec) { //L2-Norm
+	double sum = 0;
+	for (int i = 0; i < vec.size(); ++i) sum += (vec[i] * vec[i]);
+	return sqrt(sum);
+}
+
+bool checkError() {
+	return true;
+}
+
+vector<double> jacobi(vector<vector<double>> system, double error) {
+	//components
+	//At system[i][k]
+	//U if i < k
+	//D if i == k
+	//L if i > k
+	//x[i](k+1) = (1/a[i][i]) * (b[i] - sum(a[i][j] * x[i](k) exc.: i==j))
+	//i=1,2,3,...,n
+	//a[i][j]=system[i][j]
+	//b[i]   =system[i][n]
+
+	int n = system.size();
+	vector<double> x(0, n);
+	vector<double> prevx;
+
+	int k = 0;
+
+	while(!checkError() && k < 50) {
+		prevx = x; //can skip this at finale
+		for (int i = 0; i < x.size(); ++i) {
+
+			double sumsysij = 0;
+			for (int j = 0; j < system[i].size(); ++j) {
+				if (i == j) continue;
+				sumsysij += system[i][j] * prevx[j];
+			}
+
+			x[i] = (1 / system[i][i]) * (system[i][n] - sumsysij);
+		}
+		++k;
+	}
+	return x;
+}
+
+vector<double> gauss_seidel(vector<vector<double>> system, double error) {
+	
+}
+
+int main(int argc, char *argv[]) {
+	vector<vector<double>> system = {
+		{1,2,3},
+		{4,5,6}
+	};
+	double error = 0.01;
+	vector<double> solutions = jacobi(system, error);
+	for (int i = 0; i < solutions.size(); ++i) {
+		
+	}
 }
