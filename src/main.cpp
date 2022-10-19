@@ -131,7 +131,7 @@ double L2N(vector<double> vec) { //L2-Norm
 }
 
 bool checkError() {
-	return true;
+	return false;
 }
 
 vector<double> jacobi(vector<vector<double>> system, double error) {
@@ -146,7 +146,7 @@ vector<double> jacobi(vector<vector<double>> system, double error) {
 	//b[i]   =system[i][n]
 
 	int n = system.size();
-	vector<double> x(0, n);
+	vector<double> x(n, 0);
 	vector<double> prevx;
 
 	int k = 0;
@@ -160,8 +160,9 @@ vector<double> jacobi(vector<vector<double>> system, double error) {
 				if (i == j) continue;
 				sumsysij += system[i][j] * prevx[j];
 			}
-
+			cout << "x[" << i << "](" << k << ") =\t" << "( 1 / " << system[i][i] << " ) * ( " << system[i][n] << " - " << sumsysij << " )" << endl;
 			x[i] = (1 / system[i][i]) * (system[i][n] - sumsysij);
+			cout << "\tx[" << i << "](" << k << ") =\t" << x[i] << endl;
 		}
 		++k;
 	}
@@ -174,12 +175,14 @@ vector<double> gauss_seidel(vector<vector<double>> system, double error) {
 
 int main(int argc, char *argv[]) {
 	vector<vector<double>> system = {
-		{1,2,3},
+		{5,4,1},
 		{4,5,6}
 	};
 	double error = 0.01;
 	vector<double> solutions = jacobi(system, error);
+
+	cout << "Solutions( " << solutions.size() << " ):" << endl;
 	for (int i = 0; i < solutions.size(); ++i) {
-		
+		cout << "x_" << i << "\t=\t" << solutions[i] << endl;
 	}
 }
