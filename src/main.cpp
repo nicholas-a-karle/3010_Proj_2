@@ -160,9 +160,7 @@ vector<double> jacobi(vector<vector<double>> system, double error) {
 				if (i == j) continue;
 				sumsysij += system[i][j] * prevx[j];
 			}
-			cout << "x[" << i << "](" << k << ") =\t" << "( 1 / " << system[i][i] << " ) * ( " << system[i][n] << " - " << sumsysij << " )" << endl;
 			x[i] = (1 / system[i][i]) * (system[i][n] - sumsysij);
-			cout << "\tx[" << i << "](" << k << ") =\t" << x[i] << endl;
 		}
 		++k;
 	}
@@ -170,7 +168,36 @@ vector<double> jacobi(vector<vector<double>> system, double error) {
 }
 
 vector<double> gauss_seidel(vector<vector<double>> system, double error) {
-	
+	//equation
+	/*
+	a = coefficients matrix, b = constants vector
+	sum1 = sum of ( a[i][j]*new_x[j] ) from j=1 to j=i-1
+	sum2 = sum of ( a[i][j]*old_x[j] ) from j=i+1 to n
+	x[i](k+1) = (1 / a[i][i]) * (b[i] - sum1 - sum2)
+	in reality, sum1 - sum2 can equal
+	sum of ( a[i][j] * x[j] ) from j=1 to n, j != i
+	if x[i](k) is overwritten by x[i](k+1) as new value is found
+	*/
+
+	int n = system.size();
+	vector<double> x(n, 0);
+
+	int k = 0;
+
+	while(!checkError() && k < 50) {
+		for (int i = 0; i < x.size(); ++i) {
+
+			double sumsysij = 0;
+			for (int j = 0; j < system[i].size(); ++j) {
+				if (i == j) continue;
+				sumsysij += system[i][j] * x[j];
+			}
+			x[i] = (1 / system[i][i]) * (system[i][n] - sumsysij);
+		}
+		++k;
+	}
+	return x;
+
 }
 
 int main(int argc, char *argv[]) {
@@ -181,7 +208,14 @@ int main(int argc, char *argv[]) {
 	double error = 0.01;
 	vector<double> solutions = jacobi(system, error);
 
-	cout << "Solutions( " << solutions.size() << " ):" << endl;
+	cout << "Jacobi Solutions( " << solutions.size() << " ):" << endl;
+	for (int i = 0; i < solutions.size(); ++i) {
+		cout << "x_" << i << "\t=\t" << solutions[i] << endl;
+	}
+
+	solutions = gauss_seidel(system, error);
+
+	cout << "G-Seidel Solutions( " << solutions.size() << " ):" << endl;
 	for (int i = 0; i < solutions.size(); ++i) {
 		cout << "x_" << i << "\t=\t" << solutions[i] << endl;
 	}
