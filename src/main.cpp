@@ -32,6 +32,30 @@ void printVector(vector<int> vec) {
 	cout << "]" << endl;
 }
 
+double getErrorInput() {
+	double error = NAN;
+	cout << "Please input your desired maximum error for the solution." << endl;
+	while (error == NAN) {
+		string input;
+		cin >> input;
+		try {error=stod(input);} catch (exception e) {error = NAN;}
+	}
+	return error;
+}
+
+vector<double> getStartGuess(int n) {
+	vector<double> guess(n, NAN);
+	for (int i = 0; i < n; ++i) {
+		cout << "Please input the guess value for x_" << i << endl;
+		while (guess[i] == NAN) {
+			string input;
+			cin >> input;
+			try {guess[i]=stod(input);} catch (exception e) {guess[i] = NAN;}
+		}
+	}
+	return guess;
+}
+
 vector<vector<double>> getInput() {
 	string in = "";
 	//get n
@@ -201,11 +225,10 @@ vector<double> gauss_seidel(vector<vector<double>> system, double error) {
 }
 
 int main(int argc, char *argv[]) {
-	vector<vector<double>> system = {
-		{5,4,1},
-		{4,5,6}
-	};
-	double error = 0.01;
+	vector<vector<double>> system = getInput();
+	double error = getErrorInput();
+	vector<double> startGuess = getStartGuess(system.size());
+
 	vector<double> solutions = jacobi(system, error);
 
 	cout << "Jacobi Solutions( " << solutions.size() << " ):" << endl;
