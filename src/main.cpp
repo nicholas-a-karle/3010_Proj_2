@@ -35,10 +35,10 @@ void printVector(vector<int> vec) {
 double getErrorInput() {
 	double error = NAN;
 	cout << "Please input your desired maximum error for the solution." << endl;
-	while (error == NAN) {
-		string input;
-		cin >> input;
+	string input;
+	while (cin >> input) {
 		try {error=stod(input);} catch (exception e) {error = NAN;}
+		if (error != NAN) break;
 	}
 	return error;
 }
@@ -47,10 +47,10 @@ vector<double> getStartGuess(int n) {
 	vector<double> guess(n, NAN);
 	for (int i = 0; i < n; ++i) {
 		cout << "Please input the guess value for x_" << i << endl;
-		while (guess[i] == NAN) {
-			string input;
-			cin >> input;
+		string input;
+		while (cin >> input) {
 			try {guess[i]=stod(input);} catch (exception e) {guess[i] = NAN;}
+			if (guess[i] != NAN) break;
 		}
 	}
 	return guess;
@@ -154,11 +154,16 @@ double L2N(vector<double> vec) { //L2-Norm
 	return sqrt(sum);
 }
 
-bool checkError() {
-	return false;
+bool checkError(vector<double> vec, double &prev, double error) {
+	bool converged = false;
+	double curr = L2N(vec);
+
+	if (abs(prev - curr) <= error) converged = true;
+	prev = curr;
+	return converged;
 }
 
-vector<double> jacobi(vector<vector<double>> system, double error) {
+vector<double> jacobi(vector<vector<double>> system, double error, vector<double> guess) {
 	//components
 	//At system[i][k]
 	//U if i < k
@@ -170,12 +175,13 @@ vector<double> jacobi(vector<vector<double>> system, double error) {
 	//b[i]   =system[i][n]
 
 	int n = system.size();
-	vector<double> x(n, 0);
+	vector<double> x = guess;
 	vector<double> prevx;
+	double prevL2N = 0;
 
 	int k = 0;
 
-	while(!checkError() && k < 50) {
+	while(!checkError(x, prevL2N, error) && k < 50) {
 		prevx = x; //can skip this at finale
 		for (int i = 0; i < x.size(); ++i) {
 
@@ -186,12 +192,14 @@ vector<double> jacobi(vector<vector<double>> system, double error) {
 			}
 			x[i] = (1 / system[i][i]) * (system[i][n] - sumsysij);
 		}
+
+		printVector(x);
 		++k;
 	}
 	return x;
 }
 
-vector<double> gauss_seidel(vector<vector<double>> system, double error) {
+vector<double> gauss_seidel(vector<vector<double>> system, double error, vector<double> guess) {
 	//equation
 	/*
 	a = coefficients matrix, b = constants vector
@@ -204,11 +212,11 @@ vector<double> gauss_seidel(vector<vector<double>> system, double error) {
 	*/
 
 	int n = system.size();
-	vector<double> x(n, 0);
-
+	vector<double> x = guess;
+	double prevL2N = 0;
 	int k = 0;
 
-	while(!checkError() && k < 50) {
+	while(!checkError(x, prevL2N, error) && k < 50) {
 		for (int i = 0; i < x.size(); ++i) {
 
 			double sumsysij = 0;
@@ -218,6 +226,8 @@ vector<double> gauss_seidel(vector<vector<double>> system, double error) {
 			}
 			x[i] = (1 / system[i][i]) * (system[i][n] - sumsysij);
 		}
+
+		printVector(x);
 		++k;
 	}
 	return x;
@@ -229,17 +239,29 @@ int main(int argc, char *argv[]) {
 	double error = getErrorInput();
 	vector<double> startGuess = getStartGuess(system.size());
 
-	vector<double> solutions = jacobi(system, error);
+	bool sdd = true;
+	for (int i = 0; i < system.size() && sdd; ++i) {
+		for (int k = 0; k < system[i].size() - 1 && sdd; ++k) {
+			if (system[i][i] < system[i][k]) {
+				cout << "System is not strictly diagonally dominant.\nThis may result in a failure to converge to the correct solution." << endl;
+				sdd = false;
+			}
+		}
+	}
+
+	vector<double> solutions = jacobi(system, error, startGuess);
 
 	cout << "Jacobi Solutions( " << solutions.size() << " ):" << endl;
 	for (int i = 0; i < solutions.size(); ++i) {
 		cout << "x_" << i << "\t=\t" << solutions[i] << endl;
 	}
 
-	solutions = gauss_seidel(system, error);
+	solutions = gauss_seidel(system, error, startGuess);
 
 	cout << "G-Seidel Solutions( " << solutions.size() << " ):" << endl;
 	for (int i = 0; i < solutions.size(); ++i) {
 		cout << "x_" << i << "\t=\t" << solutions[i] << endl;
 	}
+
+	if (!sdd) cout << "THIS SOLUTION MAY BE INCORRECT!" << endl;
 }
